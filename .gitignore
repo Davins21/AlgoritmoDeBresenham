@@ -1,0 +1,16 @@
+.vs/
+out/
+*.exe
+*.obj
+.build/
+*.user
+*.sln
+*.vcxproj
+*.filters
+.external/
+.vs/
+out/
+*.exe
+*.obj
+*.pdb
+Algoritm.79002833
