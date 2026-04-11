@@ -189,12 +189,21 @@ void mouse_callback(GLFWwindow* window, int button, int action, int mods) {
 		setupGrid(); // Crea la geometría inicial
 
 		// Compilación de Shaders
-		unsigned int vS = glCreateShader(GL_VERTEX_SHADER); glShaderSource(vS, 1, &vertexShaderSource, NULL); glCompileShader(vS);
-		unsigned int fS = glCreateShader(GL_FRAGMENT_SHADER); glShaderSource(fS, 1, &fragmentShaderSource, NULL); glCompileShader(fS);
-		unsigned int prog = glCreateProgram(); glAttachShader(prog, vS); glAttachShader(prog, fS); glLinkProgram(prog);
+		unsigned int vS = glCreateShader(GL_VERTEX_SHADER); 
+		glShaderSource(vS, 1, &vertexShaderSource, NULL); 
+		glCompileShader(vS);
+
+		unsigned int fS = glCreateShader(GL_FRAGMENT_SHADER); 
+		glShaderSource(fS, 1, &fragmentShaderSource, NULL); 
+		glCompileShader(fS);
+
+		unsigned int prog = glCreateProgram();
+		glAttachShader(prog, vS); glAttachShader(prog, fS);
+		glLinkProgram(prog);
 
 		// Configutación de Buffers (VAO, VBO, EBO)
-		glGenVertexArrays(1, &VAO); glGenBuffers(1, &VBO); glGenBuffers(1, &EBO);
+		glGenVertexArrays(1, &VAO); glGenBuffers(1, &VBO);
+		glGenBuffers(1, &EBO);
 		glBindVertexArray(VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, gridVerts.size() * sizeof(VertexSquare), gridVerts.data(), GL_DYNAMIC_DRAW);
