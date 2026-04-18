@@ -83,26 +83,71 @@ void paintCell(int x, int y, GLfloat color[4]) {
 }
 
 // Algoritmo de Bresenham para la línea
+// Versión para líneas con pendiente suave (Horizontal: dx > dy)
+void drawLineLow(int x0, int y0, int x1, int y1) {
+	int dx = x1 - x0;
+	int dy = y1 - y0;
+	int yi = 1;
+
+	if (dy < 0) {
+		yi = -1;
+		dy = -dy;
+	}
+
+	int P = (2 * dy) - dx;
+	int y = y0;
+
+	for (int x = x0; x <= x1; x++) {
+		paintCell(x, y, lineColor);
+		if (P > 0) {
+			y = y + yi;
+			P = P + (2 * (dy - dx));
+		}
+		else {
+			P = P + 2 * dy;
+		}
+	}
+}
+
+// Versión para líneas con pendiente pronunciada (Vertical: dy >= dx)
+void drawLineHigh(int x0, int y0, int x1, int y1) {
+	int dx = x1 - x0;
+	int dy = y1 - y0;
+	int xi = 1;
+
+	if (dx < 0) {
+		xi = -1;
+		dx = -dx;
+	}
+
+	int P = (2 * dx) - dy;
+	int x = x0;
+
+	for (int y = y0; y <= y1; y++) {
+		paintCell(x, y, lineColor);
+		if (P > 0) {
+			x = x + xi;
+			P = P + (2 * (dx - dy));
+		}
+		else {
+			P = P + 2 * dx;
+		}
+	}
+}
+
+// Función principal que decide cuál usar
 void bresenhamLinea(int x0, int y0, int x1, int y1) {
-	int dx = abs(x1 - x0);
-	int dy = abs(y1 - y0);
-	int sx = (x0 < x1) ? 1 : -1;
-	int sy = (y0 < y1) ? 1 : -1;
-
-	int err = dx - dy;
-
-	while (true) {
-		paintCell(x0, y0, lineColor); // Pinta la celda actual
-		if (x0 == x1 && y0 == y1) break;
-		int e2 = 2 * err;
-		if (e2 > -dy) {
-			err -= dy;
-			x0 += sx;
-		}
-		if (e2 < dx) {
-			err += dx;
-			y0 += sy;
-		}
+	if (std::abs(y1 - y0) < std::abs(x1 - x0)) {
+		if (x0 > x1)
+			drawLineLow(x1, y1, x0, y0);
+		else
+			drawLineLow(x0, y0, x1, y1);
+	}
+	else {
+		if (y0 > y1)
+			drawLineHigh(x1, y1, x0, y0);
+		else
+			drawLineHigh(x0, y0, x1, y1);
 	}
 }
 
