@@ -151,26 +151,35 @@ void bresenhamLinea(int x0, int y0, int x1, int y1) {
 	}
 }
 
-// Algoritmo de Bresenham para Círculos
+// Algoritmo de Bresenham para Círculos 
 void bresenhamCirculo(int cx, int cy, int r) {
 	int x = 0;
-	int y = r;
-	int p = 3 - 2 * r; // Factor de decisión inicial
+	int y = r;           // Se comienza en el borde del radio
+	int p = -r;          // Parámetro de decisión inicial
 
-	// Función para pintar los 8 puntos simétricos del círculo
-	auto plot = [&](int x, int y) { paintCell(cx + x, cy + y, circleColor); };
+	// 2. Bucle principal para un octante (X hasta la diagonal)
+	while (x <= y) {
 
-	while (y >= x) {
-		plot(x, y); plot(-x, y); plot(x, -y); plot(-x, -y);
-		plot(y, x); plot(-y, x); plot(y, -x); plot(-y, -x);
-		x++;
+		paintCell(cx + x, cy + y, circleColor);
+		paintCell(cx + y, cy + x, circleColor);
+		paintCell(cx - y, cy + x, circleColor);
+		paintCell(cx - x, cy + y, circleColor);
+		paintCell(cx - x, cy - y, circleColor);
+		paintCell(cx - y, cy - x, circleColor);
+		paintCell(cx + y, cy - x, circleColor);
+		paintCell(cx + x, cy - y, circleColor);
+
+		// 4. Parámetro de decisión y actualización de coordenadas
 		if (p > 0) {
-			y--;
-			p = p + 4 * (x - y) + 10;
+			y = y - 1; // Se reduce y para mantenerse cerca de la curva
+			p = p + 2 * (x - y) + 1;
 		}
 		else {
-			p = p + 4 * x + 6;
+			p = p + 2 * x + 1;
 		}
+
+		// X se incrementa en cada iteración
+		x = x + 1;
 	}
 }
 
