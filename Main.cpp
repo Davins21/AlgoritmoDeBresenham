@@ -39,8 +39,92 @@ bool primerClickCirculo = true;			// Control para el estado del círculo
 
 // Colores
 GLfloat baseColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f }; // Fondo de celdas
-GLfloat lineColor[4] = { 0.0f, 1.0f, 1.0f, 1.0f };    // Color Cyan
-GLfloat circleColor[4] = { 1.0f, 0.5f, 0.0f, 1.0f }; //Color naranja
+GLfloat colorCyan[4] = { 0.0f, 1.0f, 1.0f, 1.0f };
+GLfloat colorNaranja[4] = { 1.0f, 0.5f, 0.0f, 1.0f };
+GLfloat colorRojo[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+GLfloat colorVerde[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+GLfloat colorGris[4] = { 0.6f, 0.6f, 0.6f, 1.0f }; // Para los botones
+GLfloat colorNegro[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+enum Herramienta { LINEA, CIRCULO };
+Herramienta herramientaActual = LINEA; // Por defecto empieza en Línea
+// Color dinámico seleccionado por el usuario (Inicia en Cyan)
+GLfloat colorSeleccionado[4] = { 0.0f, 1.0f, 1.0f, 1.0f };
+
+
+// Límites de la zona de la interfaz (Filas de arriba)
+const int UI_ROWS = 6;
+
+void paintCell(int x, int y, GLfloat color[4]) {
+	if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return;
+	int base = (y * GRID_SIZE + x) * 4;
+	for (int i = 0; i < 4; i++) {
+		gridVerts[base + i].color[0] = color[0];
+		gridVerts[base + i].color[1] = color[1];
+		gridVerts[base + i].color[2] = color[2];
+		gridVerts[base + i].color[3] = color[3];
+	}
+}
+
+// Dibuja los botones fijos en la parte superior
+void drawInterface() {
+	// 1. Pintar fondo de la barra de herramientas (Gris oscuro/Gris)
+	for (int y = GRID_SIZE - UI_ROWS; y < GRID_SIZE; y++) {
+		for (int x = 0; x < GRID_SIZE; x++) {
+			paintCell(x, y, colorGris);
+		}
+	}
+
+	// 2. Botón LÍNEA (Celdas x: 5 a 25) - Color indicador Negro/Gris
+	for (int y = GRID_SIZE - 4; y < GRID_SIZE - 1; y++) {
+		for (int x = 5; x <= 25; x++) {
+			paintCell(x, y, (herramientaActual == LINEA) ? colorCyan : colorNegro);
+		}
+	}
+
+	// 3. Botón CÍRCULO (Celdas x: 30 a 50)
+	for (int y = GRID_SIZE - 4; y < GRID_SIZE - 1; y++) {
+		for (int x = 30; x <= 50; x++) {
+			paintCell(x, y, (herramientaActual == CIRCULO) ? colorNaranja : colorNegro);
+		}
+	}
+	// DIBUJO DE TEXTO PIXELADO (Letras 'L' y 'C')
+	// ========================================================
+	// El color del texto será blanco para que contraste bien sobre el botón activo o inactivo
+	GLfloat colorTexto[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	int topY = GRID_SIZE - 1;
+
+	// Letra 'L' dentro del botón de Línea (centrado alrededor de x = 15)
+	// Línea vertical de la L
+	paintCell(14, topY - 1, colorTexto);
+	paintCell(14, topY - 2, colorTexto);
+	paintCell(14, topY - 3, colorTexto);
+	// Base de la L
+	paintCell(14, topY - 4, colorTexto);
+	paintCell(15, topY - 4, colorTexto);
+	paintCell(16, topY - 4, colorTexto);
+
+	// Letra 'C' dentro del botón de Círculo (centrado alrededor de x = 40)
+	// Techo y suelo de la C
+	paintCell(39, topY - 1, colorTexto); paintCell(40, topY - 1, colorTexto); paintCell(41, topY - 1, colorTexto);
+	paintCell(39, topY - 4, colorTexto); paintCell(40, topY - 4, colorTexto); paintCell(41, topY - 4, colorTexto);
+	// Pared izquierda de la C
+	paintCell(39, topY - 2, colorTexto);
+	paintCell(39, topY - 3, colorTexto);
+
+	// 4. Paleta de Colores (Botones pequeños al lado derecho)
+	// Cyan (x: 70 a 80)
+	for (int y = GRID_SIZE - 4; y < GRID_SIZE - 1; y++) { for (int x = 70; x <= 80; x++) paintCell(x, y, colorCyan); }
+	// Naranja (x: 85 a 95)
+	for (int y = GRID_SIZE - 4; y < GRID_SIZE - 1; y++) { for (int x = 85; x <= 95; x++) paintCell(x, y, colorNaranja); }
+	// Rojo (x: 100 a 110)
+	for (int y = GRID_SIZE - 4; y < GRID_SIZE - 1; y++) { for (int x = 100; x <= 110; x++) paintCell(x, y, colorRojo); }
+	// Verde (x: 115 a 125)
+	for (int y = GRID_SIZE - 4; y < GRID_SIZE - 1; y++) { for (int x = 115; x <= 125; x++) paintCell(x, y, colorVerde); }
+
+	// Indicador del color actual seleccionado (Muestra el color activo en la esquina derecha x: 135 a 145)
+	for (int y = GRID_SIZE - 4; y < GRID_SIZE - 1; y++) { for (int x = 135; x <= 145; x++) paintCell(x, y, colorSeleccionado); }
+}
 
 // Función para inicializar la rejilla 
 void setupGrid() {
@@ -70,18 +154,6 @@ void setupGrid() {
 	}
 }
 
-// Función para cambiar el color de una celda específica
-void paintCell(int x, int y, GLfloat color[4]) {
-	if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return;
-	int base = (y * GRID_SIZE + x) * 4;
-	for (int i = 0; i < 4; i++) { // Aplicar color a los 4 vértices de la celda
-		gridVerts[base + i].color[0] = color[0];
-		gridVerts[base + i].color[1] = color[1];
-		gridVerts[base + i].color[2] = color[2];
-		gridVerts[base + i].color[3] = color[3];
-	}
-}
-
 // Algoritmo de Bresenham para la línea
 // Versión para líneas con pendiente suave (Horizontal: dx > dy)
 void drawLineLow(int x0, int y0, int x1, int y1) {
@@ -98,7 +170,7 @@ void drawLineLow(int x0, int y0, int x1, int y1) {
 	int y = y0;
 
 	for (int x = x0; x <= x1; x++) {
-		paintCell(x, y, lineColor);
+		if (y < GRID_SIZE - UI_ROWS) paintCell(x, y, colorSeleccionado); // No pintar sobre la UI
 		if (P > 0) {
 			y = y + yi;
 			P = P + (2 * (dy - dx));
@@ -124,7 +196,7 @@ void drawLineHigh(int x0, int y0, int x1, int y1) {
 	int x = x0;
 
 	for (int y = y0; y <= y1; y++) {
-		paintCell(x, y, lineColor);
+		if (y < GRID_SIZE - UI_ROWS) paintCell(x, y, colorSeleccionado); // No pintar sobre la UI
 		if (P > 0) {
 			x = x + xi;
 			P = P + (2 * (dx - dy));
@@ -160,14 +232,14 @@ void bresenhamCirculo(int cx, int cy, int r) {
 	// 2. Bucle principal para un octante (X hasta la diagonal)
 	while (x <= y) {
 
-		paintCell(cx + x, cy + y, circleColor);
-		paintCell(cx + y, cy + x, circleColor);
-		paintCell(cx - y, cy + x, circleColor);
-		paintCell(cx - x, cy + y, circleColor);
-		paintCell(cx - x, cy - y, circleColor);
-		paintCell(cx - y, cy - x, circleColor);
-		paintCell(cx + y, cy - x, circleColor);
-		paintCell(cx + x, cy - y, circleColor);
+		if (cy + y < GRID_SIZE - UI_ROWS) paintCell(cx + x, cy + y, colorSeleccionado);
+		if (cy + x < GRID_SIZE - UI_ROWS) paintCell(cx + y, cy + x, colorSeleccionado);
+		if (cy + x < GRID_SIZE - UI_ROWS) paintCell(cx - y, cy + x, colorSeleccionado);
+		if (cy + y < GRID_SIZE - UI_ROWS) paintCell(cx - x, cy + y, colorSeleccionado);
+		if (cy - y < GRID_SIZE - UI_ROWS) paintCell(cx - x, cy - y, colorSeleccionado);
+		if (cy - x < GRID_SIZE - UI_ROWS) paintCell(cx - y, cy - x, colorSeleccionado);
+		if (cy - x < GRID_SIZE - UI_ROWS) paintCell(cx + y, cy - x, colorSeleccionado);
+		if (cy - y < GRID_SIZE - UI_ROWS) paintCell(cx + x, cy - y, colorSeleccionado);
 
 		// 4. Parámetro de decisión y actualización de coordenadas
 		if (p > 0) {
@@ -191,26 +263,65 @@ void actualizarGPU() {
 
 // Procesa los eventos del mouse en la pantalla
 void mouse_callback(GLFWwindow* window, int button, int action, int mods) {
-	if (action == GLFW_PRESS) {
+	if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
-		// Convierte la posición del mouse en coordenadas de la rejilla
 		int x = (int)(xpos / (w / (float)GRID_SIZE));
 		int y = (int)((h - ypos) / (h / (float)GRID_SIZE));
 
-		// CLICK IZQUIERDO: Línea
-		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+		// ========================================================
+		// DETECCIÓN DE CLICS EN LOS BOTONES (ZONA SUPERIOR)
+		// ========================================================
+		if (y >= GRID_SIZE - UI_ROWS) {
+			// Click en Botón LÍNEA (Celdas x 5 a 25)
+			if (x >= 5 && x <= 25) {
+				herramientaActual = LINEA;
+				std::cout << "Herramienta: Linea" << std::endl;
+			}
+			// Click en Botón CÍRCULO (Celdas x 30 a 50)
+			else if (x >= 30 && x <= 50) {
+				herramientaActual = CIRCULO;
+				std::cout << "Herramienta: Circulo" << std::endl;
+			}
+			// Click en Paleta: CYAN (x 70 a 80)
+			else if (x >= 70 && x <= 80) {
+				for (int i = 0; i < 4; i++) colorSeleccionado[i] = colorCyan[i];
+			}
+			// Click en Paleta: NARANJA (x 85 a 95)
+			else if (x >= 85 && x <= 95) {
+				for (int i = 0; i < 4; i++) colorSeleccionado[i] = colorNaranja[i];
+			}
+			// Click en Paleta: ROJO (x 100 a 110)
+			else if (x >= 100 && x <= 110) {
+				for (int i = 0; i < 4; i++) colorSeleccionado[i] = colorRojo[i];
+			}
+			// Click en Paleta: VERDE (x 115 a 125)
+			else if (x >= 115 && x <= 125) {
+				for (int i = 0; i < 4; i++) colorSeleccionado[i] = colorVerde[i];
+			}
+
+			// Forzar reinicio de trazos pendientes al tocar la UI para evitar desfases
+			primerClickLinea = true; primerClickCirculo = true;
+
+			// Redibujar la barra para actualizar los colores e indicadores visuales
+			drawInterface();
+			actualizarGPU();
+			return; // Salir para no pintar nada en el lienzo
+		}
+
+		// ========================================================
+		// DIBUJO EN EL LIENZO (ZONA INFERIOR)
+		// ========================================================
+		if (herramientaActual == LINEA) {
 			if (primerClickLinea) { xi = x; yi = y; primerClickLinea = false; }
 			else { bresenhamLinea(xi, yi, x, y); actualizarGPU(); primerClickLinea = true; }
 		}
-		// CLICK DERECHO: Círculo
-		else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+		else if (herramientaActual == CIRCULO) {
 			if (primerClickCirculo) { cxi = x; cyi = y; primerClickCirculo = false; }
 			else {
-				// Calcula el radio basado en la distancia entre clics
 				int r = (int)std::sqrt(std::pow(x - cxi, 2) + std::pow(y - cyi, 2));
 				bresenhamCirculo(cxi, cyi, r);
 				actualizarGPU();
